@@ -1,9 +1,11 @@
 
-*/*.idea
-*/*.vs
+.vs
+.idea
+*/.idea
+*/.vs
 */*.vscode
-SourceGenerator/obj
-SourceGenerator/bin
+*/obj
+*/bin
 */*.csproj
 */*.sln
 *.sln

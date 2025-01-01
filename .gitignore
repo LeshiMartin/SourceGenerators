@@ -5,7 +5,10 @@
 */.vs
 */*.vscode
 */obj
+*\obj
 */bin
+*\bin
 */*.csproj
 */*.sln
 *.sln
+*.DotSettings.user

@@ -15,19 +15,22 @@ internal static class MapperExtensions
                 : typeDeclarationSyntax.Identifier.ToString(),
             typeDeclarationSyntax.GetVariableName());
 
-    public static bool ShouldBeIgnored(this MemberDeclarationSyntax memberDeclarationSyntax, bool isFromAttribute,StringBuilder sb)
+    public static bool ShouldBeIgnored(this MemberDeclarationSyntax memberDeclarationSyntax, bool isFromAttribute,
+        StringBuilder sb)
     {
-
         var attributeName = isFromAttribute
             ? nameof(FromMappingFunctionIgnore)
             : nameof(ToMappingIgnoreMapping);
         var result = memberDeclarationSyntax.HasAttribute(attributeName);
         if (result)
         {
-            sb.AppendLine($"  ///<remarks> mapping of {memberDeclarationSyntax.GetMemberName()} will be skipped </remarks>");
+            sb.AppendLine(
+                $"  ///<remarks> mapping of {memberDeclarationSyntax.GetMemberName()} will be skipped </remarks>");
         }
+
         return result;
     }
+
     public static bool Contains(this AttributeSyntax attributeSyntax, params string[] attributeNames)
     {
         var attributeName = attributeSyntax.Name is GenericNameSyntax genericNameSyntax
@@ -53,26 +56,34 @@ internal static class MapperExtensions
             ? genericNameSyntax.Identifier.ValueText
             : attribute.Name.ToString();
 
-    public static string GetMemberSignature(this MemberDeclarationSyntax memberDeclarationSyntax, bool isFromAttribute)
+    public static string GetMemberSignature(this MemberDeclarationSyntax memberDeclarationSyntax, string variableName,
+        bool isFromAttribute)
     {
-        var memberFromFunctionAttributeName = isFromAttribute
+        var mappingExtensionFunctionName = isFromAttribute
+            ? nameof(FromMappingExtensionFunction)
+            : nameof(ToMappingExtensionFunction);
+
+        var functionAttributeName = isFromAttribute
             ? nameof(FromMappingFunction)
             : nameof(ToMappingFunction);
         return memberDeclarationSyntax switch
         {
             PropertyDeclarationSyntax propertyDeclarationSyntax =>
-                propertyDeclarationSyntax.HasAttribute(memberFromFunctionAttributeName)
-                    ? propertyDeclarationSyntax.GetAttribute(memberFromFunctionAttributeName).GetArgumentValue()
-                    : propertyDeclarationSyntax.Identifier.ToString(),
+                propertyDeclarationSyntax.HasAttribute(mappingExtensionFunctionName)
+                    ? $"{variableName}.{propertyDeclarationSyntax.Identifier.ToString()}.{propertyDeclarationSyntax.GetAttribute(mappingExtensionFunctionName).GetArgumentValue()}"
+                    : propertyDeclarationSyntax.HasAttribute(functionAttributeName)
+                        ? $"{propertyDeclarationSyntax.GetAttribute(functionAttributeName).GetArgumentValue()}({variableName}.{propertyDeclarationSyntax.Identifier.ToString()})"
+                        : $"{variableName}.{propertyDeclarationSyntax.Identifier.ToString()}",
 
             TypeDeclarationSyntax typeDeclarationSyntax =>
-                typeDeclarationSyntax.HasAttribute(memberFromFunctionAttributeName)
-                    ? typeDeclarationSyntax.GetAttribute(memberFromFunctionAttributeName).GetArgumentValue()
+                typeDeclarationSyntax.HasAttribute(mappingExtensionFunctionName)
+                    ? typeDeclarationSyntax.GetAttribute(mappingExtensionFunctionName).GetArgumentValue()
                     : typeDeclarationSyntax.Identifier.ToString(),
 
             _ => throw new NotImplementedException(),
         };
     }
+
 
     private static string GetMemberName(this MemberDeclarationSyntax memberDeclarationSyntax)
         => memberDeclarationSyntax switch
@@ -81,6 +92,7 @@ internal static class MapperExtensions
             TypeDeclarationSyntax typeDeclarationSyntax => typeDeclarationSyntax.Identifier.ToString(),
             _ => "N/A"
         };
+
     private static string GetMethodName(this AttributeSyntax attribute)
         => attribute.IsMapFromAttribute() ? "ToModel" : "ToSource";
 

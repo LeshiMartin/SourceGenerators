@@ -17,8 +17,8 @@ public class MainEntity
 public class MainModel
 {
 
-    [ToMappingIgnoreMapping]
-    [FromMappingFunction("ToString()")]
+    [ToMappingFunction("int.Parse")]
+    [FromMappingExtensionFunction("ToString()")]
     public required string Id { get; init; }
     public required string Name { get; init; }
     public required string Hint { get; init; }

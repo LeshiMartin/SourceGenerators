@@ -14,6 +14,9 @@ var entity = new MainEntity()
 
 
 
-entity.ToModel();
+var model = entity.ToModel();
+var source = model.ToSource();
+
+Console.WriteLine(source);
 
 //var model = entity.ToModel();

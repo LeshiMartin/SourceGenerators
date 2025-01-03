@@ -24,10 +24,10 @@ public class MapperClassGenerator : IIncrementalGenerator
     private void Execute(SourceProductionContext context,
         (Compilation Left, ImmutableArray<TypeDeclarationSyntax> Right) tuple)
     {
-        // if (!Debugger.IsAttached)
-        // {
-        //     Debugger.Launch();
-        // }
+        //if (!Debugger.IsAttached)
+        //{
+        //    Debugger.Launch();
+        //}
 
         var (compilation, types) = tuple;
         if (types.IsEmpty) return;
@@ -61,20 +61,24 @@ public class MapperClassGenerator : IIncrementalGenerator
 
                 var members = type.Members
                     .Where(x => !x.ShouldBeIgnored(attribute.IsMapFromAttribute(), documentationSb)).ToArray();
-                documentationSb.AppendLine("  ///<br/>Mapping will be done as:");
+                documentationSb.AppendLine("  ///<br/>Mapping will be done as:")
+                    .AppendLine("  /// <code>");
                 for (var i = 0; i < members.Length; i++)
                 {
                     var typeMember = members[i];
                     var suffix = i == members.Length - 1 ? "" : ", ";
                     var destinationMember = typeMember.GetDestinationMemberName();
-                    var mappingFunction =$"{destinationMember} = {variableName}.{typeMember.GetMemberSignature(attribute.IsMapFromAttribute())}";
-                    documentationSb.AppendLine($"  ///<br/><c>{mappingFunction}</c>");
+                    var mappingFunction =
+                        $"{destinationMember} = {typeMember.GetMemberSignature(variableName,attribute.IsMapFromAttribute())}";
+                    documentationSb.AppendLine($"  ///<br/>{mappingFunction}");
                     method.AppendLine(
                         $"            {mappingFunction}{suffix}");
                 }
 
                 method.AppendLine("          };");
-                documentationSb.AppendLine("  /// </summary>");
+                documentationSb
+                    .AppendLine("  /// </code>")
+                    .AppendLine("  /// </summary>");
                 methodsSb.Append(documentationSb.Append(method));
             }
         }
